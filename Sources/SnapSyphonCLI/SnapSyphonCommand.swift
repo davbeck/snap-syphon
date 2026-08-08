@@ -225,7 +225,10 @@ struct Record: ParsableCommand {
   @Option(name: .customLong("fps"), help: "Output frames per second.")
   var framesPerSecond = 30.0
 
-  @Option(help: "Video codec: h264, hevc, or prores.")
+  @Option(
+    help:
+    "Video codec: h264, hevc, hevc-alpha, prores, or prores4444.",
+  )
   var codec = VideoCodec.h264
 
   @Flag(name: .shortAndLong, help: "Replace an existing output file.")

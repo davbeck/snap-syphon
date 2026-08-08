@@ -67,6 +67,30 @@ final class ArgumentParserTests: XCTestCase {
     XCTAssertEqual(record.codec, .prores)
   }
 
+  func testRecordParsesAlphaVideoOptions() throws {
+    let hevcCommand = try SnapSyphonCommand.parseAsRoot([
+      "record",
+      "clip.mov",
+      "--duration",
+      "1",
+      "--codec",
+      "hevc-alpha",
+    ])
+    let hevcRecord = try XCTUnwrap(hevcCommand as? Record)
+    XCTAssertEqual(hevcRecord.codec, .hevcWithAlpha)
+
+    let proResCommand = try SnapSyphonCommand.parseAsRoot([
+      "record",
+      "clip.mov",
+      "--duration",
+      "1",
+      "--codec",
+      "prores4444",
+    ])
+    let proResRecord = try XCTUnwrap(proResCommand as? Record)
+    XCTAssertEqual(proResRecord.codec, .prores4444)
+  }
+
   func testIndexCannotBeCombinedWithOtherSelectors() {
     XCTAssertThrowsError(
       try SnapSyphonCommand.parseAsRoot([

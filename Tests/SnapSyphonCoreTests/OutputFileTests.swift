@@ -8,6 +8,44 @@ final class OutputFileTests: XCTestCase {
     case failedWrite
   }
 
+  func testAlphaVideoCodecsRequireMOV() throws {
+    let directory = FileManager.default.temporaryDirectory
+
+    for codec in [VideoCodec.hevcWithAlpha, .prores4444] {
+      XCTAssertNoThrow(
+        try OutputFile.validateRecording(
+          directory.appendingPathComponent("clip.mov"),
+          codec: codec,
+        ),
+      )
+      XCTAssertThrowsError(
+        try OutputFile.validateRecording(
+          directory.appendingPathComponent("clip.mp4"),
+          codec: codec,
+        ),
+      )
+    }
+  }
+
+  func testOpaqueVideoCodecsSupportExpectedContainers() throws {
+    let directory = FileManager.default.temporaryDirectory
+
+    for codec in [VideoCodec.h264, .hevc] {
+      XCTAssertNoThrow(
+        try OutputFile.validateRecording(
+          directory.appendingPathComponent("clip.mp4"),
+          codec: codec,
+        ),
+      )
+    }
+    XCTAssertThrowsError(
+      try OutputFile.validateRecording(
+        directory.appendingPathComponent("clip.mp4"),
+        codec: .prores,
+      ),
+    )
+  }
+
   func testRefusesToReplaceDirectoryEvenWithForce() throws {
     let directory = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString, isDirectory: true)

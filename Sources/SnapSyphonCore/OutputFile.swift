@@ -109,9 +109,9 @@ public enum OutputFile {
         "Recording output must use a .mov or .mp4 extension.",
       )
     }
-    if codec == .prores, fileExtension != "mov" {
+    if codec.requiresMOVContainer, fileExtension != "mov" {
       throw SnapSyphonError.recording(
-        "ProRes recordings require a .mov output file.",
+        "\(codec.rawValue) recordings require a .mov output file.",
       )
     }
   }

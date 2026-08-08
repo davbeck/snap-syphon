@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Preserve transparent video backgrounds with HEVC with alpha and ProRes 4444
+  recording options.
+
 ## 0.1.0 - 2026-08-07
 
 - Discover and select local Syphon sources.

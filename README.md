@@ -59,12 +59,15 @@ snap-syphon snapshot frame.png --index 0
 snap-syphon snapshot frame.jpg --source main --quality 0.9
 ```
 
-Record H.264, HEVC, or ProRes video:
+Record H.264, HEVC, or ProRes video, including alpha-capable HEVC and
+ProRes 4444:
 
 ```sh
 snap-syphon record clip.mov --index 0 --duration 5 --fps 30
 snap-syphon record clip.mp4 --source main --duration 10 --codec hevc
 snap-syphon record master.mov --index 0 --duration 5 --codec prores
+snap-syphon record overlay.mov --index 0 --duration 5 --codec hevc-alpha
+snap-syphon record overlay.mov --index 0 --duration 5 --codec prores4444
 ```
 
 Source selectors can use a list index, exact UUID, application-name match,
@@ -107,8 +110,10 @@ snap-syphon record clip.mov \
 
 - Snapshots preserve the source resolution and support PNG and JPEG.
 - Recordings preserve the source resolution and contain video only.
-- MOV supports H.264, HEVC, and ProRes 422.
+- MOV supports H.264, HEVC, HEVC with alpha, ProRes 422, and ProRes 4444.
 - MP4 supports H.264 and HEVC.
+- Use `--codec hevc-alpha` or `--codec prores4444` with a `.mov` output to
+  preserve the Syphon source's transparent background.
 - Existing files are never replaced unless `--force` is supplied.
 
 ## Syphon source

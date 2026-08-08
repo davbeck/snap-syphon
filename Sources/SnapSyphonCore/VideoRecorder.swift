@@ -6,7 +6,9 @@ import Foundation
 public enum VideoCodec: String, CaseIterable, Sendable {
   case h264
   case hevc
+  case hevcWithAlpha = "hevc-alpha"
   case prores
+  case prores4444
 
   var avCodec: AVVideoCodecType {
     switch self {
@@ -14,8 +16,21 @@ public enum VideoCodec: String, CaseIterable, Sendable {
       .h264
     case .hevc:
       .hevc
+    case .hevcWithAlpha:
+      .hevcWithAlpha
     case .prores:
       .proRes422
+    case .prores4444:
+      .proRes4444
+    }
+  }
+
+  var requiresMOVContainer: Bool {
+    switch self {
+    case .h264, .hevc:
+      false
+    case .hevcWithAlpha, .prores, .prores4444:
+      true
     }
   }
 }
@@ -194,9 +209,9 @@ extension SyphonCapture {
     case "mov":
       return .mov
     case "mp4":
-      guard codec != .prores else {
+      guard !codec.requiresMOVContainer else {
         throw SnapSyphonError.recording(
-          "ProRes recordings require a .mov output file.",
+          "\(codec.rawValue) recordings require a .mov output file.",
         )
       }
       return .mp4
