@@ -1,0 +1,23 @@
+name: swiftformat
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["**.swift"]
+  workflow_dispatch:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: irgaly/setup-mint@v1
+
+      - run: bin/format
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: format

@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+project_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$project_root"
+
+version=$(sed -n 's/^public let snapSyphonVersion = "\([^"]*\)"$/\1/p' \
+  Sources/SnapSyphonCore/Version.swift)
+if [[ -z "$version" ]]; then
+  echo "Could not determine the snap-syphon version." >&2
+  exit 1
+fi
+
+product_name="snap-syphon-$version-macos-universal"
+dist_directory="$project_root/dist"
+archive="$dist_directory/$product_name.tar.gz"
+checksum="$archive.sha256"
+
+mkdir -p "$dist_directory"
+rm -f "$archive" "$checksum"
+
+staging_root=$(mktemp -d "${TMPDIR:-/tmp}/snap-syphon-release.XXXXXX")
+trap 'rm -rf "$staging_root"' EXIT
+staging_directory="$staging_root/$product_name"
+mkdir -p "$staging_directory"
+
+arm_triple="arm64-apple-macosx13.0"
+intel_triple="x86_64-apple-macosx13.0"
+
+swift build -c release --triple "$arm_triple"
+swift build -c release --triple "$intel_triple"
+
+arm_binary_directory=$(swift build -c release --triple "$arm_triple" \
+  --show-bin-path)
+intel_binary_directory=$(swift build -c release --triple "$intel_triple" \
+  --show-bin-path)
+binary="$staging_directory/snap-syphon"
+
+lipo -create \
+  "$arm_binary_directory/snap-syphon" \
+  "$intel_binary_directory/snap-syphon" \
+  -output "$binary"
+lipo "$binary" -verify_arch arm64 x86_64
+chmod 755 "$binary"
+
+codesign_identity="${CODESIGN_IDENTITY:--}"
+if [[ "$codesign_identity" == "-" ]]; then
+  codesign --force --sign - "$binary"
+else
+  codesign --force --options runtime --timestamp \
+    --sign "$codesign_identity" "$binary"
+fi
+codesign --verify --strict "$binary"
+
+cp LICENSE README.md THIRD_PARTY_NOTICES.md "$staging_directory/"
+cp Vendor/Syphon/License.txt "$staging_directory/LICENSE-Syphon.txt"
+
+argument_parser_license=$(find .build/checkouts \
+  -path '*/swift-argument-parser/LICENSE.txt' -print -quit)
+if [[ -z "$argument_parser_license" ]]; then
+  echo "Could not locate the Swift Argument Parser license." >&2
+  exit 1
+fi
+cp "$argument_parser_license" \
+  "$staging_directory/LICENSE-SwiftArgumentParser.txt"
+
+tar -czf "$archive" -C "$staging_root" "$product_name"
+(
+  cd "$dist_directory"
+  shasum -a 256 "$(basename "$archive")" >"$(basename "$checksum")"
+)
+
+echo "Created $archive"
+echo "Created $checksum"

@@ -1,0 +1,5 @@
+--swift-version 6.2
+--language-mode 6.2
+--indent 2
+--linebreaks lf
+--exclude .build,Vendor

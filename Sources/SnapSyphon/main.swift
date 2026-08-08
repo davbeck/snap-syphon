@@ -1,0 +1,3 @@
+import SnapSyphonCLI
+
+SnapSyphonCommand.main()
